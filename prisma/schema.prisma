@@ -1,0 +1,93 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+// generator client {
+//   provider = "prisma-client-js"
+//   output   = "../src/generated/prisma"
+// }
+
+// datasource db {
+//   provider = "postgresql"
+//   url      = env("DATABASE_URL")
+// }
+
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum LeadStatus {
+  INVALID
+  VALID
+  CALLBACK
+  ENQUIRY
+}
+
+enum OrderStatus {
+  COMPLETED
+  PENDING
+  CANCELLED
+}
+
+enum SourcePlatform {
+  WATTSAPP
+  B_P
+  CALLCENTER
+  OTHER
+}
+
+
+
+
+model Customer {
+  id          String         @id @default(uuid())
+  name        String?
+  phone       String         @unique
+  email       String?
+  lead_status LeadStatus?
+  source      SourcePlatform?
+  comments    String?
+
+  orders      Order[]        // 👈 A customer can have many orders
+}
+
+model Order {
+  order_id    String         @id @default(uuid())
+  service     String
+  amount      Float?
+  status      OrderStatus?
+
+  customer_id String         // 👈 FK to Customer
+  customer    Customer       @relation(fields: [customer_id], references: [id],onDelete:Cascade ) // 👈 Each order has exactly one customer
+}
+
+
+
+// model Customer {
+//   id          String         @id @default(uuid())
+//   name        String?        // Optional (nullable)
+//   phone       String         // Required
+//   email       String?        // Optional (nullable)
+//   lead_status LeadStatus?    // Optional (nullable)
+//   source      SourcePlatform?// Optional (nullable)
+//   comments    String?        // Optional (nullable)
+//   order_id    String?        // Optional (nullable)
+//   order       Order?         @relation(fields: [order_id], references: [order_id])
+// }
+
+
+// model Order {
+//   order_id String      @id @default(uuid())
+//   service  String
+//   amount   Float?
+//   status   OrderStatus?
+//   customers Customer[]
+// }

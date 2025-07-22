@@ -6,7 +6,15 @@ export async function getAllLeads() {
    
     const customers = await prisma.customer.findMany({
       include: {
-        orders: true, // optional: include related order details
+        orders: {
+          include:{
+            services:{
+              include:{
+                subServices:true
+              }
+            }}
+        }, // optional: include related order details
+        
       },
     });
 
@@ -26,6 +34,7 @@ export async function createLead(req: Request) {
       name: body.name,
       phone: body.phone,
       email: body.email,
+      
       lead_status: body.lead_status,
       source: body.source,
       comments: body.comments,

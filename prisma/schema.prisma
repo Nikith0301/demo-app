@@ -14,7 +14,6 @@
 //   url      = env("DATABASE_URL")
 // }
 
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -44,50 +43,77 @@ enum SourcePlatform {
   OTHER
 }
 
-
-
-
 model Customer {
-  id          String         @id @default(uuid())
+  id          String          @id @default(uuid())
   name        String?
-  phone       String         @unique
+  phone       String          @unique
   email       String?
   lead_status LeadStatus?
   source      SourcePlatform?
   comments    String?
 
-  orders      Order[]        // 👈 A customer can have many orders
+  orders Order[] // A customer can have many orders
 }
 
 model Order {
-  order_id    String         @id @default(uuid())
-  service     String
-  amount      Float?
-  status      OrderStatus?
+  order_id    String   @id @default(uuid())
+  customer_id String
+  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
 
-  customer_id String         // 👈 FK to Customer
-  customer    Customer       @relation(fields: [customer_id], references: [id],onDelete:Cascade ) // 👈 Each order has exactly one customer
+  services    ServiceInOrder[] // One-to-many
+  totalAmount Float? // Computed as sum of sub-services
+  date        DateTime // check it
+  address     String?
+  status      OrderStatus? // chcnged here
+  createdAt   DateTime         @default(now())
 }
 
+model ServiceInOrder {
+  id      String @id @default(uuid())
+  order   Order  @relation(fields: [orderId], references: [order_id], onDelete: Cascade)
+  orderId String
+  name    String // e.g. "House cleaning", "Bathroom cleaning"
+  subServices SubServiceInOrder[] // One-to-many
+  totalAmount Float? // Computed as sum of sub-services
+}
 
+model SubServiceInOrder {
+  id        String         @id @default(uuid())
+  service   ServiceInOrder @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  serviceId String
+  name      String // e.g. "1 bhk cleaning"
+  amount    Float // Custom amount for this order (editable)
+}
+
+model Expense {
+  id       String    @id @default(uuid())
+  type     String?
+  amount   Float?
+  comments String?
+  date     DateTime?
+}
 
 // model Customer {
 //   id          String         @id @default(uuid())
-//   name        String?        // Optional (nullable)
-//   phone       String         // Required
-//   email       String?        // Optional (nullable)
-//   lead_status LeadStatus?    // Optional (nullable)
-//   source      SourcePlatform?// Optional (nullable)
-//   comments    String?        // Optional (nullable)
-//   order_id    String?        // Optional (nullable)
-//   order       Order?         @relation(fields: [order_id], references: [order_id])
+//   name        String?
+//   phone       String         @unique
+
+//   email       String?
+//   lead_status LeadStatus?
+//   source      SourcePlatform?
+//   comments    String?
+
+//   orders      Order[]        // 👈 A customer can have many orders
 // }
 
-
 // model Order {
-//   order_id String      @id @default(uuid())
-//   service  String
-//   amount   Float?
-//   status   OrderStatus?
-//   customers Customer[]
+//   order_id    String         @id @default(uuid())
+//   service     String
+//   sub_service String[]
+//   amount      Float?
+//   status      OrderStatus?
+//   address     String?
+
+//   customer_id String         // 👈 FK to Customer
+//   customer    Customer       @relation(fields: [customer_id], references: [id],onDelete:Cascade ) // 👈 Each order has exactly one customer
 // }

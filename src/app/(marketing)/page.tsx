@@ -2,7 +2,34 @@ import Image from "next/image";
 import Link from "next/link";
 // import ProductCard from "./Components/ProductCard";
 
-export default function Home() {
+import {getLeadSourceSummary,getDetailedLeadSummary} from "@/app/actions/lead-func"
+import { getOrderCount,getOrderLead,getOrderRevenue,getOrderCompleted,getOrderExpenses,getOrderMonthlyRevenue,getOrderStatusOverview } from "../actions/dashboard-func";
+
+export default async function Home() {
+
+  // const res1=await getLeadSourceSummary()
+  // const res2=await getDetailedLeadSummary()
+  // console.log(res1)
+  // console.log(res2)
+
+  const res1=await getOrderStatusOverview()
+  const res2=await getOrderMonthlyRevenue()
+  const res3=await getOrderExpenses()
+  const res4=await getOrderCompleted()
+  const res5=await getOrderRevenue()
+  const res6=await getOrderLead()
+ 
+  const res7=await getOrderCount()
+
+console.log(res1)
+console.log(res2)
+console.log(res3)
+console.log(res5)
+console.log(res7)
+console.log(res6)
+console.log(res4)
+
+
   return (
     // <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
     //   <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
@@ -103,7 +130,7 @@ export default function Home() {
     // </div>
     <main>
       <h1>Home</h1>
-      <Link href="users">Users</Link>
+      {/* <Link href="users">Users</Link> */}
       {/* <ProductCard/> */}
       </main>
   );

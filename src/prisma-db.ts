@@ -63,3 +63,23 @@ export async function getSingleLead(id: string) {
     throw error;
   }
 }
+
+const today = new Date();
+const nextWeek = new Date();
+nextWeek.setDate(today.getDate() + 7);
+
+const upcomingOrders = await prisma.order.findMany({
+  where: {
+    date: {
+      gte: today,       // Greater than or equal to today
+      lte: nextWeek,    // Less than or equal to 7 days from now
+    },
+  },
+  include: {
+    services: {
+      include: {
+        subServices: true,
+      },
+    },
+  },
+});

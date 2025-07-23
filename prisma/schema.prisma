@@ -51,15 +51,14 @@ model Customer {
   lead_status LeadStatus?
   source      SourcePlatform?
   comments    String?
-
   orders Order[] // A customer can have many orders
+  createdAt   DateTime         @default(now())
 }
 
 model Order {
   order_id    String   @id @default(uuid())
   customer_id String
   customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-
   services    ServiceInOrder[] // One-to-many
   totalAmount Float? // Computed as sum of sub-services
   date        DateTime // check it

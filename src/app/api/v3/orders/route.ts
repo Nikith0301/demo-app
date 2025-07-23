@@ -3,13 +3,27 @@ import { prisma } from "@/app/lib/prisma"
 
 
 export async function GET(){
-    const orders=await prisma.order.findMany({
-        include:{
-            customer:true,
-        },
-    })
+  const today = new Date();
+const nextWeek = new Date();
+nextWeek.setDate(today.getDate() + 30);
 
-    return Response.json(orders);
+const upcomingOrders = await prisma.order.findMany({
+  where: {
+    date: {
+      gte: today,       // Greater than or equal to today
+      lte: nextWeek,    // Less than or equal to 7 days from now
+    },
+  },
+  // include: {
+  //   services: {
+  //     include: {
+  //       subServices: true,
+  //     },
+  //   },
+  // },
+});
+
+    return Response.json(upcomingOrders);
 }
 
 

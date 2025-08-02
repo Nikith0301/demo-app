@@ -16,26 +16,6 @@ export async function GET(req: Request) {
   }
 }
 
-// export async function POST(req: Request) {
-//   const body = await req.json();
-//   console.log("############################")
-//   console.log(body)
-//   const customer = await prisma.customer.create({
-//     data: {
-//       name: body.name,
-//       phone: body.phone,
-//       email: body.email,
-//       lead_status: body.lead_status,
-//       source: body.source,
-//       comments: body.comments,
-//       orders:{
-//         create:body.orders // 👈 body.orders should be an array of order objects
-//       }
-//     }
-//   });
-
-//   return NextResponse.json(customer);
-// }
 
 export async function POST(req: Request) {
   const lead=await createLead(req)

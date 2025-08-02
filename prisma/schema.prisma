@@ -30,6 +30,11 @@ enum LeadStatus {
   ENQUIRY
 }
 
+enum PayMethod {
+  CASH
+  ONLINE
+}
+
 enum OrderStatus {
   COMPLETED
   PENDING
@@ -43,7 +48,36 @@ enum SourcePlatform {
   OTHER
 }
 
-model Customer {
+enum Services{
+  CLEANING
+  ELECTRIC
+  CAR_WASH
+  PLUMBING
+  NA
+}
+//Full Deep Cleaning-  FDC
+//Lite cleaning -      LC
+
+//WC_FDC
+//WC_LC
+//1_BHK_FDC
+//2_BHK_FDC
+//Plumbing
+
+//PVC 
+//PSR
+//WLR
+
+// ELECTRIC
+// WS
+// ES
+// ER
+
+// CWS
+// CIS
+// CD
+
+model Lead {
   id          String          @id @default(uuid())
   name        String?
   phone       String          @unique
@@ -51,38 +85,66 @@ model Customer {
   lead_status LeadStatus?
   source      SourcePlatform?
   comments    String?
-  orders Order[] // A customer can have many orders
-  createdAt   DateTime         @default(now())
+  address     String?
+  pincode     String?
+  orders      Order[] // A lead can have many orders
+  createdAt   DateTime        @default(now())
 }
 
 model Order {
-  order_id    String   @id @default(uuid())
-  customer_id String
-  customer    Customer @relation(fields: [customer_id], references: [id], onDelete: Cascade)
-  services    ServiceInOrder[] // One-to-many
-  totalAmount Float? // Computed as sum of sub-services
-  date        DateTime // check it
-  address     String?
-  status      OrderStatus? // chcnged here
-  createdAt   DateTime         @default(now())
+  orderId String @id @default(uuid())
+  leadId  String
+
+  lead     Lead            @relation(fields: [leadId], references: [id], onDelete: Cascade)
+  service  String?  //WCFDC||WS
+  subservice String?
+  date     DateTime
+  revenue  Float           @default(0)
+  vendor   Float           @default(0)
+  profit   Float           @default(0) // Revenue-Vendor
+  status   OrderStatus? // Ensure `OrderStatus` enum is defined
+  payment  PayMethod       @default(CASH)
+  discount Float           @default(0)
+
+  createdAt DateTime @default(now())
 }
 
-model ServiceInOrder {
-  id      String @id @default(uuid())
-  order   Order  @relation(fields: [orderId], references: [order_id], onDelete: Cascade)
-  orderId String
-  name    String // e.g. "House cleaning", "Bathroom cleaning"
-  subServices SubServiceInOrder[] // One-to-many
-  totalAmount Float? // Computed as sum of sub-services
-}
 
-model SubServiceInOrder {
-  id        String         @id @default(uuid())
-  service   ServiceInOrder @relation(fields: [serviceId], references: [id], onDelete: Cascade)
-  serviceId String
-  name      String // e.g. "1 bhk cleaning"
-  amount    Float // Custom amount for this order (editable)
-}
+
+
+// model Order {
+//   orderId String @id @default(uuid())
+//   leadId  String
+
+//   lead     Lead            @relation(fields: [leadId], references: [id], onDelete: Cascade)
+//   service  ServiceInOrder? // 1:1 (optional if an order might not have a service initially)
+//   date     DateTime
+//   revenue  Float           @default(0)
+//   vendor   Float           @default(0)
+//   profit   Float           @default(0) // Revenue-Vendor
+//   status   OrderStatus? // Ensure `OrderStatus` enum is defined
+//   payment  PayMethod       @default(CASH)
+//   discount Float           @default(0)
+
+//   createdAt DateTime @default(now())
+// }
+
+// model ServiceInOrder {
+//   id          String  @id @default(uuid())
+//   orderId     String  @unique // must be unique to prevent multiple services from pointing to the same order.
+//   order       Order   @relation(fields: [orderId], references: [orderId])
+//   service     String  // e.g., "House Cleaning"
+//   subservice  String? // 1 BHK
+//   totalAmount Float?
+// }
+
+// model SubServiceInOrder {
+//   id        String         @id @default(uuid())
+//   serviceId String         @unique
+//   service   ServiceInOrder @relation(fields: [serviceId], references: [id])
+//   name      String // e.g., "Deep Cleaning"
+//   price     Float
+// }
 
 model Expense {
   id       String    @id @default(uuid())
@@ -91,28 +153,3 @@ model Expense {
   comments String?
   date     DateTime?
 }
-
-// model Customer {
-//   id          String         @id @default(uuid())
-//   name        String?
-//   phone       String         @unique
-
-//   email       String?
-//   lead_status LeadStatus?
-//   source      SourcePlatform?
-//   comments    String?
-
-//   orders      Order[]        // 👈 A customer can have many orders
-// }
-
-// model Order {
-//   order_id    String         @id @default(uuid())
-//   service     String
-//   sub_service String[]
-//   amount      Float?
-//   status      OrderStatus?
-//   address     String?
-
-//   customer_id String         // 👈 FK to Customer
-//   customer    Customer       @relation(fields: [customer_id], references: [id],onDelete:Cascade ) // 👈 Each order has exactly one customer
-// }

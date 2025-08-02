@@ -1,123 +1,145 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { getOrders } from "@/app/actions/orders-func";
-
+import { useState } from "react";
+import { AllOrders } from "@/app/actions/order-func-v2";
 
 export default function Page() {
   const [filterType, setFilterType] = useState<"upcoming" | "previous" | "range">("upcoming");
-  const [days, setDays] = useState<number | "">("");
+  const [days, setDays] = useState<number>(7);
   const [fromDate, setFromDate] = useState("");
   const [toDate, setToDate] = useState("");
-  const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
+  const [status, setStatus] = useState("");
+  const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [result, setResult] = useState<any>();
 
-  const [orders, setOrders] = useState<any[]>([]);
-  const [isPending, startTransition] = useTransition();
+  const handleFetch = async () => {
+    const payload: any = {
+      filterType,
+      sortOrder: "asc", // You can make this dynamic if needed
+    };
 
-  const fetchOrders = () => {
-    startTransition(async () => {
-      const result = await getOrders({
-        filterType,
-        days: days ? Number(days) : undefined,
-        fromDate: fromDate || undefined,
-        toDate: toDate || undefined,
-        sortOrder,
-      });
-      setOrders(result);
-    });
+    if (filterType === "upcoming" || filterType === "previous") {
+      payload.days = days;
+    }
+
+    if (filterType === "range") {
+      payload.fromDate = fromDate;
+      payload.toDate = toDate;
+    }
+
+    if (status) payload.status = status;
+    if (name) payload.name = name;
+    if (phone) payload.phone = phone;
+
+    const res = await AllOrders(payload);
+    console.log(res);
+    setResult(res);
   };
 
   return (
-    <div className="p-6 space-y-6">
-      <h1 className="text-2xl font-semibold">Filter Orders</h1>
+    <div className="p-4 space-y-4">
+      <h2 className="text-xl font-bold">Filter Orders</h2>
 
-      {/* Filter Selector */}
-      <div className="flex flex-wrap gap-4">
-        <select
-          className="border p-2 rounded"
-          value={filterType}
-          onChange={(e) => {
-            setFilterType(e.target.value as any);
-            setDays("");
-            setFromDate("");
-            setToDate("");
-          }}
-        >
-          <option value="upcoming">Upcoming Orders (Next D Days)</option>
-          <option value="previous">Previous Orders (Last D Days)</option>
-          <option value="range">Between Calendar Dates</option>
-        </select>
-
-        <select
-          className="border p-2 rounded"
-          value={sortOrder}
-          onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-        >
-          <option value="asc">Sort by Date Ascending</option>
-          <option value="desc">Sort by Date Descending</option>
-        </select>
+      <div className="space-x-4">
+        <label>
+          <input
+            type="radio"
+            name="filter"
+            value="upcoming"
+            checked={filterType === "upcoming"}
+            onChange={() => setFilterType("upcoming")}
+          />
+          Upcoming
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="filter"
+            value="previous"
+            checked={filterType === "previous"}
+            onChange={() => setFilterType("previous")}
+          />
+          Previous
+        </label>
+        <label>
+          <input
+            type="radio"
+            name="filter"
+            value="range"
+            checked={filterType === "range"}
+            onChange={() => setFilterType("range")}
+          />
+          Range
+        </label>
       </div>
 
-      {/* Input based on filter */}
-      <div className="flex gap-4">
-        {filterType === "range" ? (
-          <>
-            <div>
-              <label>From:</label>
-              <input
-                type="date"
-                className="border p-2 rounded"
-                value={fromDate}
-                onChange={(e) => setFromDate(e.target.value)}
-              />
-            </div>
-            <div>
-              <label>To:</label>
-              <input
-                type="date"
-                className="border p-2 rounded"
-                value={toDate}
-                onChange={(e) => setToDate(e.target.value)}
-              />
-            </div>
-          </>
-        ) : (
-          <div>
-            <label>Days:</label>
-            <input
-              type="number"
-              className="border p-2 rounded"
-              value={days}
-              onChange={(e) => setDays(Number(e.target.value) || "")}
-            />
-          </div>
-        )}
+      {(filterType === "upcoming" || filterType === "previous") && (
+        <input
+          type="number"
+          placeholder="Enter number of days"
+          className="border p-2"
+          value={days}
+          onChange={(e) => setDays(parseInt(e.target.value))}
+        />
+      )}
 
-        <button
-          onClick={fetchOrders}
-          className="bg-blue-600 text-white px-4 py-2 rounded"
-        >
-          {isPending ? "Loading..." : "Get Orders"}
-        </button>
-      </div>
+      {filterType === "range" && (
+        <div className="space-x-2">
+          <input
+            type="date"
+            value={fromDate}
+            onChange={(e) => setFromDate(e.target.value)}
+            className="border p-2"
+          />
+          <input
+            type="date"
+            value={toDate}
+            onChange={(e) => setToDate(e.target.value)}
+            className="border p-2"
+          />
+        </div>
+      )}
 
-      {/* Results */}
-      <div>
-        <h2 className="text-lg font-semibold">Orders:</h2>
-        {orders.length === 0 ? (
-          <p>No orders found.</p>
-        ) : (
-          <ul className="space-y-2">
-            {orders.map((order) => (
-              <li key={order.order_id} className="border p-3 rounded shadow">
-                <div><strong>Order ID:</strong> {order.order_id}</div>
-                <div><strong>Date:</strong> {new Date(order.date).toLocaleDateString()}</div>
-                <div><strong>Status:</strong> {order.status || "Not set"}</div>
-              </li>
-            ))}
-          </ul>
-        )}
-      </div>
+      <input
+        type="text"
+        placeholder="Filter by name"
+        className="border p-2 w-full"
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+      />
+
+      <input
+        type="text"
+        placeholder="Filter by phone"
+        className="border p-2 w-full"
+        value={phone}
+        onChange={(e) => setPhone(e.target.value)}
+      />
+
+      <select
+        className="border p-2 w-full"
+        value={status}
+        onChange={(e) => setStatus(e.target.value)}
+      >
+        <option value="">-- Select Status --</option>
+        <option value="COMPLETED">COMPLETED</option>
+        <option value="PENDING">PENDING</option>
+        <option value="CANCELLED">CANCELLED</option>
+      </select>
+
+      <button
+        onClick={handleFetch}
+        className="bg-blue-500 text-white px-4 py-2 rounded"
+      >
+        Fetch Orders
+      </button>
+
+      {result && (
+        <pre className="bg-black-100 p-4 mt-4 overflow-x-auto">
+          {JSON.stringify(result, null, 2)}
+        </pre>
+      )}
     </div>
   );
 }
